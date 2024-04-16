@@ -7,6 +7,7 @@ defmodule Defectoscope.Application do
   @impl true
   def start(_type, _args) do
     children = [
+      {Task.Supervisor, name: Defectoscope.TaskSupervisor},
       Defectoscope.ErrorHandler
     ]
 

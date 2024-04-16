@@ -17,10 +17,20 @@ defmodule Defectoscope.ConnCase do
           kind, reason ->
             case reason do
               %Plug.Conn.WrapperError{conn: conn, reason: reason} ->
-                %{conn: conn, kind: kind, reason: reason, stack: __STACKTRACE__}
+                %{
+                  conn: conn,
+                  kind: kind,
+                  reason: reason,
+                  stack: __STACKTRACE__
+                }
 
               _ ->
-                %{conn: conn, kind: kind, reason: reason, stack: __STACKTRACE__}
+                %{
+                  conn: conn,
+                  kind: kind,
+                  reason: reason,
+                  stack: __STACKTRACE__
+                }
             end
         end
       end

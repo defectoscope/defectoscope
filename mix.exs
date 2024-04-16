@@ -5,7 +5,7 @@ defmodule Defectoscope.MixProject do
     [
       app: :defectoscope,
       version: "0.1.0",
-      elixir: "~> 1.16",
+      elixir: "~> 1.5",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -18,6 +18,7 @@ defmodule Defectoscope.MixProject do
   # Run "mix help compile.app" to learn about applications
   def application do
     [
+      mod: {Defectoscope.Application, []},
       extra_applications: [:logger]
     ]
   end
@@ -27,6 +28,7 @@ defmodule Defectoscope.MixProject do
     [
       {:plug, "~> 1.15"},
       {:jason, "~> 1.4"},
+      {:req, "~> 0.4.14"},
       # Testing dependencies
       {:excoveralls, "~> 0.18", only: :test},
       {:credo, "~> 1.6", only: [:dev, :test]},

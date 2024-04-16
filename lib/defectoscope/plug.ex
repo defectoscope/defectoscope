@@ -9,21 +9,25 @@ defmodule Defectoscope.Plug do
   @doc false
   defmacro __using__(_opts) do
     quote do
-      use Plug.ErrorHandler
+      @before_compile unquote(__MODULE__)
+    end
+  end
 
-      # Override the `Plug.ErrorHandler.call/2`
+  @doc false
+  defmacro __before_compile__(_env) do
+    quote do
+      defoverridable call: 2
+
       def call(conn, opts) do
         try do
           super(conn, opts)
         catch
           kind, reason ->
             stack = __STACKTRACE__
-            Defectoscope.Plug.handle_error(kind, reason, stack, conn)
+            unquote(__MODULE__).handle_error(kind, reason, stack, conn)
             :erlang.raise(kind, reason, stack)
         end
       end
-
-      defoverridable call: 2
     end
   end
 
@@ -40,7 +44,7 @@ defmodule Defectoscope.Plug do
 
   @doc false
   def handle_error(kind, reason, stack, conn) do
-    %{kind: kind, reason: reason, stack: stack, conn: conn}
+    %{kind: kind, reason: reason, stack: stack, conn: conn, timestamp: DateTime.utc_now()}
     |> ErrorHandler.push()
   end
 end
