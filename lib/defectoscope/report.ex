@@ -1,4 +1,4 @@
-defmodule Defectoscope.ErrorReport do
+defmodule Defectoscope.Report do
   @moduledoc false
 
   alias Defectoscope.ErrorHandler
@@ -12,7 +12,13 @@ defmodule Defectoscope.ErrorReport do
         }
 
   @derive Jason.Encoder
-  defstruct [:status, :message, :phoenix_params, :stacktrace, :timestamp]
+  defstruct [
+    :status,
+    :message,
+    :phoenix_params,
+    :stacktrace,
+    :timestamp
+  ]
 
   @spec new(error :: ErrorHandler.error()) :: __MODULE__.t()
   def new(error) do
@@ -36,14 +42,20 @@ defmodule Defectoscope.ErrorReport do
   end
 
   # Phoenix params for request
-  defp format_phoenix_params(%{conn: nil} = _error), do: %{}
+  defp format_phoenix_params(%{conn: nil} = _error) do
+    # We don't have a conn, so we can't get the request params
+    %{}
+  end
 
   defp format_phoenix_params(%{conn: conn} = _error) do
     %{
       method: conn.method,
       path_info: conn.path_info,
       request_path: conn.request_path,
-      query_string: conn.query_string
+      query_string: conn.query_string,
+      params: format_params(conn.params),
+      req_headers: format_req_headers(conn.req_headers),
+      session: format_session(conn.private)
     }
   end
 
@@ -56,9 +68,33 @@ defmodule Defectoscope.ErrorReport do
   end
 
   # Timestamp for error
-  defp format_timestamp(%{timestamp: timestamp} = _error), do: timestamp
+  defp format_timestamp(%{timestamp: timestamp} = _error) do
+    timestamp
+  end
 
   defp format_timestamp(_errors) do
     DateTime.utc_now()
+  end
+
+  # Params for request
+  defp format_params(params) do
+    case params do
+      %Plug.Conn.Unfetched{} -> %{}
+      _ -> params
+    end
+  end
+
+  # Request headers for request
+  defp format_req_headers(req_headers) do
+    Enum.into(req_headers, %{})
+  end
+
+  # Session for request
+  defp format_session(%{plug_session: session} = _conn_private) do
+    session
+  end
+
+  defp format_session(_conn_private) do
+    %{}
   end
 end

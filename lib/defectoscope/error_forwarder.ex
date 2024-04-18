@@ -1,7 +1,7 @@
 defmodule Defectoscope.ErrorForwarder do
   @moduledoc false
 
-  alias Defectoscope.ErrorReport
+  alias Defectoscope.Report
   alias Defectoscope.ErrorHandler
   alias Defectoscope.Config
 
@@ -11,7 +11,7 @@ defmodule Defectoscope.ErrorForwarder do
   @spec forward(list(ErrorHandler.error())) :: Req.Response.t()
   def forward(errors) do
     errors
-    |> Enum.map(&ErrorReport.new/1)
+    |> Enum.map(&Report.new/1)
     |> request()
   end
 
@@ -19,7 +19,7 @@ defmodule Defectoscope.ErrorForwarder do
     [
       method: :post,
       retry: :transient,
-      body: reports |> Jason.encode!()
+      json: %{errors: reports}
     ]
     |> Keyword.merge(Config.forwarder_request_opts())
     |> Req.request!()
