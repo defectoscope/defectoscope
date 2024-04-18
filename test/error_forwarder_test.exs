@@ -1,13 +1,13 @@
-defmodule Defectoscope.ErrorForwarderTest do
+defmodule Defectoscope.ForwarderTest do
   @moduledoc false
 
   use Defectoscope.ConnCase
 
-  alias Defectoscope.ErrorForwarder
+  alias Defectoscope.Forwarder
 
   describe "forward/1" do
     setup do
-      Req.Test.stub(Defectoscope.ErrorForwarder, fn conn ->
+      Req.Test.stub(Defectoscope.Forwarder, fn conn ->
         Req.Test.json(conn, %{status: :ok})
       end)
 
@@ -23,12 +23,12 @@ defmodule Defectoscope.ErrorForwarderTest do
         get("/throw")
       ]
 
-      assert %{"status" => "ok"} = ErrorForwarder.forward(errors).body
+      assert %{"status" => "ok"} = Forwarder.forward(errors).body
     end
 
     test "(raise exception)" do
       ok = get("/")
-      assert catch_error(ErrorForwarder.forward([ok]))
+      assert catch_error(Forwarder.forward([ok]))
     end
   end
 end

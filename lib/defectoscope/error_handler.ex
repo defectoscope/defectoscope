@@ -1,11 +1,11 @@
 defmodule Defectoscope.ErrorHandler do
-  @moduledoc false
+  @moduledoc """
+  GenServer that keeps track of errors and sends them to the error forwarder
+  """
 
   use GenServer
 
-  alias Defectoscope.TaskSupervisor
-  alias Defectoscope.ErrorForwarder
-  alias Defectoscope.Config
+  alias Defectoscope.{TaskSupervisor, Forwarder, Config}
 
   @type state :: %{
           forwarder_ref: reference | nil,
@@ -16,7 +16,7 @@ defmodule Defectoscope.ErrorHandler do
   @type error :: %{
           kind: atom,
           reason: any,
-          stack: list,
+          stack: list(tuple),
           conn: Plug.Conn.t() | nil,
           timestamp: DateTime.t()
         }
@@ -92,7 +92,7 @@ defmodule Defectoscope.ErrorHandler do
   @impl true
   # Start error forwarding
   def handle_info(:start_forwarder, %{errors: errors} = state) do
-    task = Task.Supervisor.async_nolink(TaskSupervisor, ErrorForwarder, :forward, [errors])
+    task = Task.Supervisor.async_nolink(TaskSupervisor, Forwarder, :forward, [errors])
     state = %{state | forwarder_ref: task.ref, errors: [], pending_errors: errors}
     {:noreply, state}
   end

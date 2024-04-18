@@ -26,7 +26,7 @@ defmodule Defectoscope.Config do
   @default_forwarder_request_opts [base_url: "http://localhost"]
 
   @doc """
-  Returns the list of options for the HTTP request
+  Return the list of options for the HTTP request
   """
   @spec forwarder_request_opts() :: keyword()
   def forwarder_request_opts(), do: forwarder_request_opts(Mix.env())
@@ -35,7 +35,7 @@ defmodule Defectoscope.Config do
   def forwarder_request_opts(:test) do
     Keyword.merge(
       @default_forwarder_request_opts,
-      plug: {Req.Test, Defectoscope.ErrorForwarder}
+      plug: {Req.Test, Defectoscope.Forwarder}
     )
   end
 
@@ -48,7 +48,7 @@ defmodule Defectoscope.Config do
   end
 
   @doc """
-  Returns the interval for the error forwarder to run
+  Return the interval for the forwarder to run
   By default it's every 10 minutes
   """
   @spec error_forwarder_interval() :: integer
