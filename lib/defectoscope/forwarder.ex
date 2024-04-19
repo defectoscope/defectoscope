@@ -19,9 +19,14 @@ defmodule Defectoscope.Forwarder do
     [
       method: :post,
       retry: :transient,
-      json: %{errors: reports}
+      base_url: Config.endpoint(),
+      json: %{app_key: Config.app_key(), env: Mix.env(), reports: reports}
     ]
-    |> Keyword.merge(Config.forwarder_request_opts())
+    |> Keyword.merge(req_options())
     |> Req.request!()
+  end
+
+  defp req_options() do
+    Application.get_env(:defectoscope, :req_options, [])
   end
 end

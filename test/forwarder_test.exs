@@ -7,7 +7,7 @@ defmodule Defectoscope.ForwarderTest do
 
   describe "forward/1" do
     setup do
-      Req.Test.stub(Defectoscope.Forwarder, fn conn ->
+      Req.Test.stub(Forwarder, fn conn ->
         Req.Test.json(conn, %{status: :ok})
       end)
 
