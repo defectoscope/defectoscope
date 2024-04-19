@@ -44,7 +44,13 @@ defmodule Defectoscope.Plug do
 
   @doc false
   def handle_error(kind, reason, stack, conn) do
-    %{kind: kind, reason: reason, stack: stack, conn: conn, timestamp: DateTime.utc_now()}
+    %{
+      kind: kind,
+      reason: reason,
+      stack: stack,
+      conn: conn,
+      timestamp: DateTime.utc_now()
+    }
     |> ErrorHandler.push()
   end
 end

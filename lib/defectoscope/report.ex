@@ -1,5 +1,7 @@
 defmodule Defectoscope.Report do
-  @moduledoc false
+  @moduledoc """
+  Module to format errors into reports
+  """
 
   alias Defectoscope.ErrorHandler
 
@@ -41,11 +43,8 @@ defmodule Defectoscope.Report do
     Exception.format_banner(kind, reason, stack)
   end
 
-  # Phoenix params for request
-  defp format_phoenix_params(%{conn: nil} = _error) do
-    # We don't have a conn, so we can't get the request params
-    %{}
-  end
+  # Phoenix request params
+  defp format_phoenix_params(%{conn: nil} = _error), do: %{}
 
   defp format_phoenix_params(%{conn: conn} = _error) do
     %{
@@ -59,7 +58,7 @@ defmodule Defectoscope.Report do
     }
   end
 
-  # Stacktrace for error
+  # Stacktrace
   defp format_stacktrace(%{stack: stack} = _error) do
     stack
     |> Exception.format_stacktrace()
@@ -67,34 +66,20 @@ defmodule Defectoscope.Report do
     |> Enum.map(&String.trim/1)
   end
 
-  # Timestamp for error
-  defp format_timestamp(%{timestamp: timestamp} = _error) do
-    timestamp
-  end
+  # Timestamp when error happened
+  defp format_timestamp(%{timestamp: timestamp} = _error), do: timestamp
+  defp format_timestamp(_error), do: DateTime.utc_now()
 
-  defp format_timestamp(_errors) do
-    DateTime.utc_now()
-  end
+  # Request params
+  defp format_params(%Plug.Conn.Unfetched{} = _params), do: %{}
+  defp format_params(params), do: params
 
-  # Params for request
-  defp format_params(params) do
-    case params do
-      %Plug.Conn.Unfetched{} -> %{}
-      _ -> params
-    end
-  end
-
-  # Request headers for request
+  # Request headers
   defp format_req_headers(req_headers) do
     Enum.into(req_headers, %{})
   end
 
-  # Session for request
-  defp format_session(%{plug_session: session} = _conn_private) do
-    session
-  end
-
-  defp format_session(_conn_private) do
-    %{}
-  end
+  # Request session
+  defp format_session(%{plug_session: session} = _private), do: session
+  defp format_session(_private), do: %{}
 end

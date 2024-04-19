@@ -1,12 +1,12 @@
-defmodule Defectoscope.ErrorForwarder do
-  @moduledoc false
+defmodule Defectoscope.Forwarder do
+  @moduledoc """
+  Module to forward reports to the backend service
+  """
 
-  alias Defectoscope.Report
-  alias Defectoscope.ErrorHandler
-  alias Defectoscope.Config
+  alias Defectoscope.{Report, Config, ErrorHandler}
 
   @doc """
-  Forward a list of errors to backend server
+  Forward errors to the error forwarder
   """
   @spec forward(list(ErrorHandler.error())) :: Req.Response.t()
   def forward(errors) do
