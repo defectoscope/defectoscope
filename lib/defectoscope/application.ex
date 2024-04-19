@@ -3,9 +3,14 @@ defmodule Defectoscope.Application do
 
   use Application
 
+  alias Defectoscope.Config
+
   @doc false
   @impl true
   def start(_type, _args) do
+    # Validate the configuration before starting the application
+    Config.validate_config!()
+
     children = [
       {Task.Supervisor, name: Defectoscope.TaskSupervisor},
       Defectoscope.ErrorHandler

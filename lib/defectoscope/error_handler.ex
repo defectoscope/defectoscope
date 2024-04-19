@@ -5,7 +5,7 @@ defmodule Defectoscope.ErrorHandler do
 
   use GenServer
 
-  alias Defectoscope.{TaskSupervisor, Forwarder, Config}
+  alias Defectoscope.{TaskSupervisor, Forwarder}
 
   @type state :: %{
           forwarder_ref: reference | nil,
@@ -57,8 +57,9 @@ defmodule Defectoscope.ErrorHandler do
   end
 
   @impl true
+  # Start the forwarder task every minute
   def handle_continue(:start_scheduler, state) do
-    Process.send_after(self(), :start_forwarder, Config.error_forwarder_interval())
+    Process.send_after(self(), :start_forwarder, :timer.minutes(1))
     {:noreply, state}
   end
 
@@ -68,8 +69,8 @@ defmodule Defectoscope.ErrorHandler do
   end
 
   @impl true
-  def handle_call(:get_state, _from, %{errors: errors} = state) do
-    {:reply, errors, state}
+  def handle_call(:get_state, _from, state) do
+    {:reply, state, state}
   end
 
   @impl true
