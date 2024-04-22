@@ -16,6 +16,8 @@ defmodule Defectoscope.Application do
       Defectoscope.ErrorHandler
     ]
 
+    Logger.add_backend(Defectoscope.LoggerBackend)
+
     opts = [strategy: :one_for_one, name: Defectoscope.Supervisor]
     Supervisor.start_link(children, opts)
   end
