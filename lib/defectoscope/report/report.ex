@@ -36,7 +36,8 @@ defmodule Defectoscope.Report do
           level: :error,
           message: Exception.format_banner(kind, reason, __STACKTRACE__),
           phoenix_params: %{},
-          stacktrace: __STACKTRACE__
+          stacktrace: __STACKTRACE__,
+          timestamp: DateTime.utc_now()
         }
     end
   end
