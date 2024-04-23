@@ -3,36 +3,37 @@ defmodule Defectoscope.LoggerBackend do
 
   @behaviour :gen_event
 
-  alias Defectoscope.ErrorHandler
+  alias Defectoscope.{ErrorHandler, LoggerBackendReport}
+
+  @handle_levels ~w(error critical emergency alert)a
 
   def init(__MODULE__) do
     {:ok, []}
   end
 
-  def handle_event({level, _gl, {Logger, message, _timestamp, metadata}}, opts) do
-    ErrorHandler.push(%{
-      kind: :logger,
+  # Ignore events from other nodes
+  def handle_event({_level, gl, {_, _, _, _}}, state) when node(gl) != node() do
+    {:ok, state}
+  end
+
+  def handle_event({level, _gl, {_, message, _, meta}}, state) when level in @handle_levels do
+    %{
+      buidler: LoggerBackendReport,
       level: level,
-      reason: IO.chardata_to_string(message),
-      stack: stacktrace(metadata),
-      conn: nil,
+      message: message,
+      meta: meta |> Enum.into(%{}),
       timestamp: DateTime.utc_now()
-    })
+    }
+    |> ErrorHandler.push()
 
-    {:ok, opts}
+    {:ok, state}
   end
 
-  def handle_event(_event, opts) do
-    {:ok, opts}
+  def handle_event(_event, state) do
+    {:ok, state}
   end
 
-  def handle_call(_messsage, opts) do
-    {:ok, nil, opts}
-  end
-
-  # Create a stacktrace from the metadata
-  defp stacktrace(metadata) do
-    metadata = Enum.into(metadata, %{})
-    [Tuple.append(metadata.mfa, file: metadata.file, line: metadata.line)]
+  def handle_call(_messsage, state) do
+    {:ok, nil, state}
   end
 end

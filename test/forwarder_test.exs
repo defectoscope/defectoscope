@@ -3,7 +3,7 @@ defmodule Defectoscope.ForwarderTest do
 
   use Defectoscope.ConnCase
 
-  alias Defectoscope.Forwarder
+  alias Defectoscope.{Forwarder, PlugReport, LoggerBackendReport}
 
   describe "forward/1" do
     setup do
@@ -14,21 +14,41 @@ defmodule Defectoscope.ForwarderTest do
       :ok
     end
 
-    test "(success)" do
-      errors = [
-        get("/exception"),
-        get("/badarith"),
-        get("/bad_request"),
-        get("/exit"),
-        get("/throw")
-      ]
+    test "(plug: success)" do
+      errors =
+        [
+          get("/exception"),
+          get("/badarith"),
+          get("/bad_request"),
+          get("/exit"),
+          get("/throw")
+        ]
+        |> Enum.map(&Map.put(&1, :builder, PlugReport))
 
       assert %{"status" => "ok"} = Forwarder.forward(errors).body
     end
 
-    test "(raise exception)" do
+    test "(plug: raise exception)" do
       ok = get("/")
       assert catch_error(Forwarder.forward([ok]))
+    end
+
+    test "(logger backend)" do
+      logger_error = %{
+        builder: LoggerBackendReport,
+        level: :error,
+        message: ["** (ArithmeticError) bad argument in arithmetic expression"],
+        meta: %{
+          crash_reason:
+            {%ArithmeticError{
+               message: "bad argument in arithmetic expression"
+             }, [{:erlang, :/, [1, 0], [error_info: %{module: :erl_erts_errors}]}]},
+          erl_level: :error
+        },
+        timestamp: ~U[2024-04-23 08:56:19.327874Z]
+      }
+
+      assert %{"status" => "ok"} = Forwarder.forward([logger_error]).body
     end
   end
 end

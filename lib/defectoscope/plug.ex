@@ -3,7 +3,7 @@ defmodule Defectoscope.Plug do
   A plug to catch errors and send them to the error handler
   """
 
-  alias Defectoscope.ErrorHandler
+  alias Defectoscope.{ErrorHandler, PlugReport}
   alias Plug.Conn.WrapperError
 
   @doc false
@@ -38,13 +38,9 @@ defmodule Defectoscope.Plug do
   end
 
   @doc false
-  def handle_error(_kind, %{plug_status: status}, _stack, _conn) when status < 500 do
-    # TODO: Do something with this error
-  end
-
-  @doc false
   def handle_error(kind, reason, stack, conn) do
     %{
+      builder: PlugReport,
       kind: kind,
       reason: reason,
       stack: stack,
