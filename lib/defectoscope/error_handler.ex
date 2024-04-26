@@ -7,18 +7,12 @@ defmodule Defectoscope.ErrorHandler do
 
   alias Defectoscope.{TaskSupervisor, Forwarder}
 
+  require Logger
+
   @type state :: %{
           forwarder_ref: reference | nil,
-          errors: list(error),
-          pending_errors: list(error)
-        }
-
-  @type error :: %{
-          kind: atom,
-          reason: any,
-          stack: list(tuple),
-          conn: Plug.Conn.t() | nil,
-          timestamp: DateTime.t()
+          errors: list(map),
+          pending_errors: list(map)
         }
 
   @doc false
@@ -27,9 +21,9 @@ defmodule Defectoscope.ErrorHandler do
   end
 
   @doc """
-  Push an error to the error handler
+  Push an error params to the error handler
   """
-  @spec push(error) :: :ok
+  @spec push(error :: map) :: :ok
   def push(error) do
     GenServer.cast(__MODULE__, {:push, error})
   end
@@ -45,7 +39,7 @@ defmodule Defectoscope.ErrorHandler do
   @doc """
   Get the state of the error handler
   """
-  @spec get_state() :: list(error)
+  @spec get_state() :: list(map)
   def get_state() do
     GenServer.call(__MODULE__, :get_state)
   end
@@ -101,6 +95,10 @@ defmodule Defectoscope.ErrorHandler do
   @impl true
   # Error forwarder has successfully completed
   def handle_info({ref, _}, %{forwarder_ref: ref} = state) do
+    Logger.info(
+      "Error forwarder has successfully completed, was sent #{length(state.pending_errors)} errors"
+    )
+
     Process.demonitor(ref, [:flush])
     state = %{state | forwarder_ref: nil, pending_errors: []}
     {:noreply, state, {:continue, :start_scheduler}}
@@ -108,7 +106,9 @@ defmodule Defectoscope.ErrorHandler do
 
   @impl true
   # Error forwarding down with an error
-  def handle_info({:DOWN, ref, :process, _pid, _reason}, %{forwarder_ref: ref} = state) do
+  def handle_info({:DOWN, ref, :process, _pid, reason}, %{forwarder_ref: ref} = state) do
+    Logger.warning("Error forwarder has failed, reason: #{inspect(reason)}")
+
     state = %{
       state
       | forwarder_ref: nil,

@@ -1,42 +1,37 @@
-defmodule Defectoscope.Report do
-  @moduledoc """
-  Module to format errors into reports
-  """
+defmodule Defectoscope.PlugReport do
+  @moduledoc false
 
-  alias Defectoscope.ErrorHandler
+  @behaviour Defectoscope.ReportBehaviour
 
-  @type t :: %__MODULE__{
-          status: integer,
-          message: String.t(),
-          phoenix_params: map,
-          stacktrace: list,
+  alias Defectoscope.Report
+
+  @type params :: %{
+          kind: atom,
+          reason: any,
+          stack: list,
+          conn: Plug.Conn.t(),
           timestamp: DateTime.t()
         }
 
-  @derive Jason.Encoder
-  defstruct [
-    :status,
-    :message,
-    :phoenix_params,
-    :stacktrace,
-    :timestamp
-  ]
-
-  @spec new(error :: ErrorHandler.error()) :: __MODULE__.t()
-  def new(error) do
-    %__MODULE__{
-      status: format_status(error),
-      message: format_message(error),
-      phoenix_params: format_phoenix_params(error),
-      stacktrace: format_stacktrace(error),
-      timestamp: format_timestamp(error)
+  @doc """
+  Build a new report from a plug
+  """
+  @impl true
+  @spec new(params) :: Report.t()
+  def new(params) do
+    %Report{
+      kind: format_kind(params),
+      level: :error,
+      message: format_message(params),
+      phoenix_params: format_phoenix_params(params),
+      stacktrace: format_stacktrace(params),
+      timestamp: format_timestamp(params)
     }
   end
 
-  # Http status code
-  defp format_status(%{reason: reason} = _error) do
-    Plug.Exception.status(reason)
-  end
+  # Error kind
+  defp format_kind(%{reason: reason} = _error) when is_atom(reason), do: reason
+  defp format_kind(%{reason: reason} = _error) when is_struct(reason), do: reason.__struct__
 
   # Error message
   defp format_message(%{kind: kind, reason: reason, stack: stack} = _error) do
@@ -46,8 +41,9 @@ defmodule Defectoscope.Report do
   # Phoenix request params
   defp format_phoenix_params(%{conn: nil} = _error), do: %{}
 
-  defp format_phoenix_params(%{conn: conn} = _error) do
+  defp format_phoenix_params(%{conn: conn, reason: reason} = _error) do
     %{
+      status: Plug.Exception.status(reason),
       method: conn.method,
       path_info: conn.path_info,
       request_path: conn.request_path,
