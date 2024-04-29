@@ -11,7 +11,7 @@ defmodule Defectoscope.PlugReportTest do
       password_confirmation: "password",
       token: "token",
       api_key: "api_key",
-      secret: "secret",
+      secret: ["secret1", "secret2"],
       some: "value"
     }
 
@@ -31,7 +31,7 @@ defmodule Defectoscope.PlugReportTest do
              params: params,
              session: _,
              request_path: "/exception",
-             req_headers: _,
+             req_headers: req_headers,
              method: "GET",
              path_info: ["exception"],
              query_string: query_string
@@ -41,12 +41,26 @@ defmodule Defectoscope.PlugReportTest do
              "api_key" => "*******",
              "password" => "********",
              "password_confirmation" => "********",
-             "secret" => "******",
+             "secret" => ["*******", "*******"],
              "some" => "value",
              "token" => "*****"
            } = params
 
     assert query_string ==
-             "api_key=*******&password=********&password_confirmation=********&secret=******&some=value&token=*****"
+             """
+             api_key=*******
+             &password=********
+             &password_confirmation=********
+             &secret[]=*******
+             &secret[]=*******
+             &some=value
+             &token=*****
+             """
+             |> String.replace(~r/\s+/, "")
+
+    assert %{
+             "authorization" => "******",
+             "referer" => "http://example.com"
+           } = req_headers
   end
 end

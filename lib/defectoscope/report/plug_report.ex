@@ -50,7 +50,7 @@ defmodule Defectoscope.PlugReport do
       request_path: conn.request_path,
       query_string: conn.query_string |> SensitiveDataFilter.filter_query_string(),
       params: format_params(conn.params),
-      req_headers: format_req_headers(conn.req_headers),
+      req_headers: format_req_headers(conn.req_headers) |> SensitiveDataFilter.filter_headers(),
       session: format_session(conn.private)
     }
   end
