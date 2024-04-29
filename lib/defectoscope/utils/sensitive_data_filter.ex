@@ -1,6 +1,6 @@
 defmodule Defectoscope.Util.SensitiveDataFilter do
   @moduledoc """
-  A module to filter sensitive data from phoenix params
+  A module to filter sensitive data
   """
 
   # List of sensitive params
