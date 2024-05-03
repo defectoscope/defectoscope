@@ -5,9 +5,9 @@ defmodule Defectoscope.ErrorHandler do
 
   use GenServer
 
-  alias Defectoscope.{TaskSupervisor, Forwarder}
+  import Defectoscope.Util.Logger, only: [debug: 1]
 
-  require Logger
+  alias Defectoscope.{TaskSupervisor, Forwarder}
 
   @type state :: %{
           forwarder_ref: reference | nil,
@@ -81,7 +81,7 @@ defmodule Defectoscope.ErrorHandler do
   @impl true
   # Nothing to forward yet
   def handle_info(:start_forwarder, %{errors: []} = state) do
-    {:noreply, state}
+    {:noreply, state, {:continue, :start_scheduler}}
   end
 
   @impl true
@@ -95,9 +95,10 @@ defmodule Defectoscope.ErrorHandler do
   @impl true
   # Error forwarder has successfully completed
   def handle_info({ref, _}, %{forwarder_ref: ref} = state) do
-    Logger.info(
-      "Error forwarder has successfully completed, was sent #{length(state.pending_errors)} errors"
-    )
+    debug("""
+      Error forwarder has successfully completed,
+      was sent #{length(state.pending_errors)} errors
+    """)
 
     Process.demonitor(ref, [:flush])
     state = %{state | forwarder_ref: nil, pending_errors: []}
@@ -107,7 +108,7 @@ defmodule Defectoscope.ErrorHandler do
   @impl true
   # Error forwarding down with an error
   def handle_info({:DOWN, ref, :process, _pid, reason}, %{forwarder_ref: ref} = state) do
-    Logger.warning("Error forwarder has failed, reason: #{inspect(reason)}")
+    debug("Error forwarder has failed, reason: #{inspect(reason)}")
 
     state = %{
       state

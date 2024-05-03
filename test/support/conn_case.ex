@@ -9,7 +9,10 @@ defmodule Defectoscope.ConnCase do
 
       # Make `get` requests to the sample router
       defp get(path, params \\ nil) do
-        conn = conn(:get, path, params)
+        conn =
+          conn(:get, path, params)
+          |> put_req_header("authorization", "secret")
+          |> put_req_header("referer", "http://example.com")
 
         try do
           %{conn: Defectoscope.SampleRouter.call(conn, [])}

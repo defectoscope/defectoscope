@@ -4,6 +4,7 @@ defmodule Defectoscope.PlugReport do
   @behaviour Defectoscope.ReportBehaviour
 
   alias Defectoscope.Report
+  alias Defectoscope.Util.SensitiveDataFilter
 
   @type params :: %{
           kind: atom,
@@ -47,9 +48,9 @@ defmodule Defectoscope.PlugReport do
       method: conn.method,
       path_info: conn.path_info,
       request_path: conn.request_path,
-      query_string: conn.query_string,
+      query_string: conn.query_string |> SensitiveDataFilter.filter_query_string(),
       params: format_params(conn.params),
-      req_headers: format_req_headers(conn.req_headers),
+      req_headers: format_req_headers(conn.req_headers) |> SensitiveDataFilter.filter_headers(),
       session: format_session(conn.private)
     }
   end
@@ -68,7 +69,7 @@ defmodule Defectoscope.PlugReport do
 
   # Request params
   defp format_params(%Plug.Conn.Unfetched{} = _params), do: %{}
-  defp format_params(params), do: params
+  defp format_params(params), do: SensitiveDataFilter.filter_phoenix_params(params)
 
   # Request headers
   defp format_req_headers(req_headers) do

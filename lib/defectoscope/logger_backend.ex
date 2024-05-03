@@ -5,6 +5,8 @@ defmodule Defectoscope.LoggerBackend do
 
   alias Defectoscope.{ErrorHandler, LoggerBackendReport}
 
+  require Logger
+
   @handle_levels ~w(error critical emergency alert)a
 
   def init(__MODULE__) do
@@ -18,7 +20,7 @@ defmodule Defectoscope.LoggerBackend do
 
   def handle_event({level, _gl, {_, message, _, meta}}, state) when level in @handle_levels do
     %{
-      buidler: LoggerBackendReport,
+      builder: LoggerBackendReport,
       level: level,
       message: message,
       meta: meta |> Enum.into(%{}),
