@@ -1,6 +1,6 @@
 import Config
 
-if Mix.env() == :test || Mix.env() == :dev do
+if Mix.env() == :test do
   config :defectoscope,
     app_key: "test",
     endpoint: "http://localhost:4000",
