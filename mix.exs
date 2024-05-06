@@ -11,7 +11,8 @@ defmodule Defectoscope.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       elixirc_options: [warnings_as_errors: true],
       test_coverage: [tool: ExCoveralls],
-      preferred_cli_env: preferred_cli_env()
+      preferred_cli_env: preferred_cli_env(),
+      versioning: versioning()
     ]
   end
 
@@ -49,4 +50,8 @@ defmodule Defectoscope.MixProject do
       "coveralls.cobertura": :test
     ]
   end
+
+  # Configures versioning
+  defp versioning(),
+    do: [commit_msg: "Version %s"]
 end
