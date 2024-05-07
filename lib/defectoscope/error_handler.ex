@@ -7,7 +7,7 @@ defmodule Defectoscope.ErrorHandler do
 
   import Defectoscope.Util.Logger, only: [debug: 1]
 
-  alias Defectoscope.{TaskSupervisor, Forwarder}
+  alias Defectoscope.{TaskSupervisor, Forwarder, Config}
 
   @type state :: %{
           forwarder_ref: reference | nil,
@@ -25,7 +25,9 @@ defmodule Defectoscope.ErrorHandler do
   """
   @spec push(error :: map) :: :ok
   def push(error) do
-    GenServer.cast(__MODULE__, {:push, error})
+    if Config.is_enabled?(),
+      do: GenServer.cast(__MODULE__, {:push, error}),
+      else: :ok
   end
 
   @doc """

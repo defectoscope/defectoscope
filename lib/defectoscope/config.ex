@@ -2,6 +2,24 @@ defmodule Defectoscope.Config do
   @moduledoc false
 
   @doc """
+  Check if the defectoscope is enabled
+  By default it is enabled
+  """
+  @spec is_enabled?() :: boolean
+  def is_enabled?() do
+    Application.get_env(:defectoscope, :enabled, true)
+  end
+
+  @doc """
+  Check if the debug mode is enabled
+  By default it is disabled
+  """
+  @spec is_debug?() :: boolean
+  def is_debug?() do
+    Application.get_env(:defectoscope, :debug, false)
+  end
+
+  @doc """
   Validate the configuration
   """
   def validate_config!() do
