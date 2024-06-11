@@ -29,7 +29,7 @@ defmodule Defectoscope.MixProject do
     [
       {:plug, "~> 1.15"},
       {:jason, "~> 1.4"},
-      {:req, "~> 0.4.14"},
+      {:req, "~> 0.5"},
       # Testing dependencies
       {:excoveralls, "~> 0.18", only: :test},
       {:credo, "~> 1.6", only: [:dev, :test]},

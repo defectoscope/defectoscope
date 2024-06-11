@@ -55,7 +55,7 @@ defmodule Defectoscope.ErrorHandler do
   @impl true
   # Start the forwarder task every minute
   def handle_continue(:start_scheduler, state) do
-    Process.send_after(self(), :start_forwarder, :timer.minutes(1))
+    Process.send_after(self(), :start_forwarder, :timer.seconds(20))
     {:noreply, state}
   end
 
@@ -95,14 +95,31 @@ defmodule Defectoscope.ErrorHandler do
   end
 
   @impl true
+  # Error forwarding down with an error
+  def handle_info({ref, {:error, reason}}, %{forwarder_ref: ref} = state) do
+    Process.demonitor(ref, [:flush])
+    debug("Error forwarder has failed, reason: #{inspect(reason)}")
+
+    state = %{
+      state
+      | forwarder_ref: nil,
+        errors: state.errors ++ state.pending_errors,
+        pending_errors: []
+    }
+
+    {:noreply, state, {:continue, :start_scheduler}}
+  end
+
+  @impl true
   # Error forwarder has successfully completed
   def handle_info({ref, _}, %{forwarder_ref: ref} = state) do
+    Process.demonitor(ref, [:flush])
+
     debug("""
       Error forwarder has successfully completed,
       was sent #{length(state.pending_errors)} errors
     """)
 
-    Process.demonitor(ref, [:flush])
     state = %{state | forwarder_ref: nil, pending_errors: []}
     {:noreply, state, {:continue, :start_scheduler}}
   end
