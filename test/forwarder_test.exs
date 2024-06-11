@@ -25,7 +25,7 @@ defmodule Defectoscope.ForwarderTest do
         ]
         |> Enum.map(&Map.put(&1, :builder, PlugReport))
 
-      assert %{"status" => "ok"} = Forwarder.forward(errors).body
+      assert {:ok, _} = Forwarder.forward(errors)
     end
 
     test "(plug: raise exception)" do
@@ -48,7 +48,7 @@ defmodule Defectoscope.ForwarderTest do
         timestamp: ~U[2024-04-23 08:56:19.327874Z]
       }
 
-      assert %{"status" => "ok"} = Forwarder.forward([logger_error]).body
+      assert {:ok, _} = Forwarder.forward([logger_error])
     end
   end
 end

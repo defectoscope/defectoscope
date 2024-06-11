@@ -25,7 +25,7 @@ defmodule Defectoscope.Forwarder do
       json: %{app_key: Config.app_key(), env: Mix.env(), reports: reports}
     ]
     |> Keyword.merge(req_options())
-    |> Req.request!()
+    |> Req.request()
   end
 
   defp req_options() do
