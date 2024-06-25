@@ -22,13 +22,13 @@ To start using Defectoscope, you need to set up the configuration with your appl
 
 ```elixir
 config :defectoscope,
-  api_key: "your_app_key",
+  app_key: "your_app_key",
   endpoint: "https://your_app_endpoint",
   debug: true,
   enabled: true
 ```
 
-Replace "your_app_key" with the actual API key provided to you and "https://your_app_endpoint" with the URL of the error reporting endpoint.
+Replace "your_app_key" with the actual app key provided to you and "https://your_app_endpoint" with the URL of the error reporting endpoint.
 
 The `debug` option is used to enable or disable debug logging.
 
