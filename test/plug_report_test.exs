@@ -3,7 +3,7 @@ defmodule Defectoscope.PlugReportTest do
 
   use Defectoscope.ConnCase
 
-  alias Defectoscope.{PlugReport, Report}
+  alias Defectoscope.{Report, PlugReportBuilder}
 
   test "new/1" do
     payload = %{
@@ -15,7 +15,7 @@ defmodule Defectoscope.PlugReportTest do
       some: "value"
     }
 
-    report = get("/exception", payload) |> PlugReport.new()
+    report = get("/exception", payload) |> PlugReportBuilder.new()
 
     assert %Report{
              kind: RuntimeError,

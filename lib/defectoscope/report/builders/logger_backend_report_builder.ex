@@ -1,14 +1,14 @@
-defmodule Defectoscope.LoggerBackendReport do
+defmodule Defectoscope.LoggerBackendReportBuilder do
   @moduledoc false
 
-  @behaviour Defectoscope.ReportBehaviour
+  @behaviour Defectoscope.ReportBuilderBehaviour
 
   alias Defectoscope.Report
 
   @type params :: %{
-          level: atom,
+          level: atom(),
           message: String.t(),
-          meta: map,
+          meta: map(),
           timestamp: DateTime.t()
         }
 
