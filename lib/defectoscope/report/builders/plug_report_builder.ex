@@ -1,15 +1,15 @@
-defmodule Defectoscope.PlugReport do
+defmodule Defectoscope.PlugReportBuilder do
   @moduledoc false
 
-  @behaviour Defectoscope.ReportBehaviour
+  @behaviour Defectoscope.ReportBuilderBehaviour
 
   alias Defectoscope.Report
   alias Defectoscope.Util.SensitiveDataFilter
 
   @type params :: %{
-          kind: atom,
-          reason: any,
-          stack: list,
+          kind: atom(),
+          reason: any(),
+          stack: list(),
           conn: Plug.Conn.t(),
           timestamp: DateTime.t()
         }

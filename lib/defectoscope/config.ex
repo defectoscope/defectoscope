@@ -2,19 +2,17 @@ defmodule Defectoscope.Config do
   @moduledoc false
 
   @doc """
-  Check if the defectoscope is enabled
-  By default it is enabled
+  Enabled flag to enable or disable the Defectoscope
   """
-  @spec is_enabled?() :: boolean
+  @spec is_enabled?() :: boolean()
   def is_enabled?() do
     Application.get_env(:defectoscope, :enabled, true)
   end
 
   @doc """
-  Check if the debug mode is enabled
-  By default it is disabled
+  Debug mode
   """
-  @spec is_debug?() :: boolean
+  @spec is_debug?() :: boolean()
   def is_debug?() do
     Application.get_env(:defectoscope, :debug, false)
   end
@@ -22,15 +20,20 @@ defmodule Defectoscope.Config do
   @doc """
   Validate the configuration
   """
+  @spec validate_config!() :: :ok
   def validate_config!() do
-    for key <- [:app_key, :endpoint] do
-      with :error <- Application.fetch_env(:defectoscope, key) do
-        raise """
-        Missing :#{key} in the :defectoscope configuration. Please add it to your config.exs
-        """
-      end
+    is_enabled?() |> do_validate_config!()
+  end
+
+  defp do_validate_config!(true = _is_enabled) do
+    with :error <- Application.fetch_env(:defectoscope, :app_key) do
+      raise """
+      Missing :app_key in the :defectoscope configuration. Please add it to your config.exs
+      """
     end
   end
+
+  defp do_validate_config!(false = _is_enabled), do: :ok
 
   @doc """
   Application key
@@ -41,10 +44,14 @@ defmodule Defectoscope.Config do
   end
 
   @doc """
-  Endpoint to send the reports to
+  Endpoint to send reports to
   """
   @spec endpoint() :: String.t()
   def endpoint() do
-    Application.get_env(:defectoscope, :endpoint)
+    Application.get_env(
+      :defectoscope,
+      :endpoint,
+      "https://api.defectoscope.dev/dev/track"
+    )
   end
 end

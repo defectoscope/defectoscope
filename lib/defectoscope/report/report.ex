@@ -4,13 +4,15 @@ defmodule Defectoscope.Report do
   """
 
   @type t :: %__MODULE__{
-          kind: atom,
-          level: atom,
+          kind: atom(),
+          level: atom(),
           message: String.t(),
-          phoenix_params: map,
-          stacktrace: list,
+          phoenix_params: map(),
+          stacktrace: list(String.t()),
           timestamp: DateTime.t()
         }
+
+  @type params :: %{:builder => atom(), optional(atom()) => any()}
 
   @derive Jason.Encoder
   defstruct [
@@ -25,7 +27,7 @@ defmodule Defectoscope.Report do
   @doc """
   Create a new report
   """
-  @spec new(params :: %{builder: atom}) :: t()
+  @spec new(params) :: t()
   def new(%{builder: builder} = params) do
     try do
       builder.new(params)

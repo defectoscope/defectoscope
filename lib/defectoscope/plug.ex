@@ -3,7 +3,7 @@ defmodule Defectoscope.Plug do
   A plug to catch errors and send them to the error handler
   """
 
-  alias Defectoscope.{ErrorHandler, PlugReport}
+  alias Defectoscope.{ErrorHandler, PlugReportBuilder}
   alias Plug.Conn.WrapperError
 
   @doc false
@@ -40,7 +40,7 @@ defmodule Defectoscope.Plug do
   @doc false
   def handle_error(kind, reason, stack, conn) do
     %{
-      builder: PlugReport,
+      builder: PlugReportBuilder,
       kind: kind,
       reason: reason,
       stack: stack,

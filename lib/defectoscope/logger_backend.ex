@@ -3,7 +3,7 @@ defmodule Defectoscope.LoggerBackend do
 
   @behaviour :gen_event
 
-  alias Defectoscope.{ErrorHandler, LoggerBackendReport}
+  alias Defectoscope.{ErrorHandler, LoggerBackendReportBuilder}
 
   require Logger
 
@@ -20,7 +20,7 @@ defmodule Defectoscope.LoggerBackend do
 
   def handle_event({level, _gl, {_, message, _, meta}}, state) when level in @handle_levels do
     %{
-      builder: LoggerBackendReport,
+      builder: LoggerBackendReportBuilder,
       level: level,
       message: message,
       meta: meta |> Enum.into(%{}),

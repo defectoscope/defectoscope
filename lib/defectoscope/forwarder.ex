@@ -3,12 +3,16 @@ defmodule Defectoscope.Forwarder do
   Module to forward reports to the backend service
   """
 
-  alias Defectoscope.{Report, Config, ErrorHandler}
+  alias Defectoscope.{Report, Config}
+
+  @type error :: map()
+  @type errors :: list(error)
+  @type response :: Req.Response.t()
 
   @doc """
   Forward errors to the error forwarder
   """
-  @spec forward(list(ErrorHandler.error())) :: Req.Response.t()
+  @spec forward(errors) :: response
   def forward(errors) do
     errors
     |> Enum.map(&Report.new/1)
@@ -28,6 +32,7 @@ defmodule Defectoscope.Forwarder do
     |> Req.request()
   end
 
+  # Req request options from the configuration
   defp req_options() do
     Application.get_env(:defectoscope, :req_options, [])
   end

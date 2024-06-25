@@ -9,10 +9,11 @@ defmodule Defectoscope.ErrorHandler do
 
   alias Defectoscope.{TaskSupervisor, Forwarder, Config}
 
+  @type error :: map()
   @type state :: %{
-          forwarder_ref: reference | nil,
-          errors: list(map),
-          pending_errors: list(map)
+          forwarder_ref: reference() | nil,
+          errors: list(error),
+          pending_errors: list(error)
         }
 
   @doc false
@@ -23,7 +24,7 @@ defmodule Defectoscope.ErrorHandler do
   @doc """
   Push an error params to the error handler
   """
-  @spec push(error :: map) :: :ok
+  @spec push(error) :: :ok
   def push(error) do
     if Config.is_enabled?(),
       do: GenServer.cast(__MODULE__, {:push, error}),
@@ -39,21 +40,22 @@ defmodule Defectoscope.ErrorHandler do
   end
 
   @doc """
-  Get the state of the error handler
+  Get current state of the error handler
   """
-  @spec get_state() :: list(map)
+  @spec get_state() :: state
   def get_state() do
     GenServer.call(__MODULE__, :get_state)
   end
 
+  @doc false
   @impl true
   def init(_opts) do
     state = %{forwarder_ref: nil, errors: [], pending_errors: []}
     {:ok, state, {:continue, :start_scheduler}}
   end
 
-  @impl true
   # Start the forwarder task every minute
+  @impl true
   def handle_continue(:start_scheduler, state) do
     Process.send_after(self(), :start_forwarder, :timer.seconds(20))
     {:noreply, state}
@@ -74,28 +76,28 @@ defmodule Defectoscope.ErrorHandler do
     {:noreply, %{state | errors: [error | errors]}}
   end
 
-  @impl true
   # Error forwarder is already running
+  @impl true
   def handle_info(:start_forwarder, %{forwarder_ref: ref} = state) when not is_nil(ref) do
     {:noreply, state}
   end
 
-  @impl true
   # Nothing to forward yet
+  @impl true
   def handle_info(:start_forwarder, %{errors: []} = state) do
     {:noreply, state, {:continue, :start_scheduler}}
   end
 
-  @impl true
   # Start error forwarding
+  @impl true
   def handle_info(:start_forwarder, %{errors: errors} = state) do
     task = Task.Supervisor.async_nolink(TaskSupervisor, Forwarder, :forward, [errors])
     state = %{state | forwarder_ref: task.ref, errors: [], pending_errors: errors}
     {:noreply, state}
   end
 
-  @impl true
   # Error forwarding down with an error
+  @impl true
   def handle_info({ref, {:error, reason}}, %{forwarder_ref: ref} = state) do
     Process.demonitor(ref, [:flush])
     debug("Error forwarder has failed, reason: #{inspect(reason)}")
@@ -110,8 +112,8 @@ defmodule Defectoscope.ErrorHandler do
     {:noreply, state, {:continue, :start_scheduler}}
   end
 
-  @impl true
   # Error forwarder has successfully completed
+  @impl true
   def handle_info({ref, _}, %{forwarder_ref: ref} = state) do
     Process.demonitor(ref, [:flush])
 
@@ -124,8 +126,8 @@ defmodule Defectoscope.ErrorHandler do
     {:noreply, state, {:continue, :start_scheduler}}
   end
 
-  @impl true
   # Error forwarding down with an error
+  @impl true
   def handle_info({:DOWN, ref, :process, _pid, reason}, %{forwarder_ref: ref} = state) do
     debug("Error forwarder has failed, reason: #{inspect(reason)}")
 
