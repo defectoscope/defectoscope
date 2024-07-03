@@ -31,7 +31,7 @@ defmodule Defectoscope.LoggerBackendReportBuilder do
       message: (format_message(reason, stacktrace) || message) |> IO.iodata_to_binary(),
       stacktrace: format_stacktrace(stacktrace),
       timestamp: timestamp,
-      meta: inspect(metadata)
+      meta: Map.new(metadata, fn {k, v} -> {k, inspect(v)} end)
     }
   end
 

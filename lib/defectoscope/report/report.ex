@@ -10,7 +10,7 @@ defmodule Defectoscope.Report do
           stacktrace: list(String.t()),
           timestamp: DateTime.t(),
           phoenix_params: map(),
-          meta: String.t() | nil
+          meta: map()
         }
 
   @type params :: %{:builder => atom(), optional(atom()) => any()}
@@ -23,7 +23,7 @@ defmodule Defectoscope.Report do
     :stacktrace,
     :timestamp,
     phoenix_params: %{},
-    meta: nil
+    meta: %{}
   ]
 
   @doc """
