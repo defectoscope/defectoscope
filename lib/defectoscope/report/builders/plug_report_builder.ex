@@ -31,8 +31,16 @@ defmodule Defectoscope.PlugReportBuilder do
   end
 
   # Error kind
-  defp format_kind(%{reason: reason} = _params) when is_atom(reason), do: reason
-  defp format_kind(%{reason: reason} = _params) when is_struct(reason), do: reason.__struct__
+  defp format_kind(%{reason: reason} = _params) when is_atom(reason),
+    do: reason
+
+  defp format_kind(%{reason: reason} = _params) when is_struct(reason),
+    do: reason.__struct__
+
+  defp format_kind(%{reason: {exception, _maybe_stacktrace}} = _params) when is_atom(exception),
+    do: exception
+
+  defp format_kind(%{reason: reason} = _params), do: inspect(reason)
 
   # Error message
   defp format_message(%{kind: kind, reason: reason, stack: stack} = _params) do
