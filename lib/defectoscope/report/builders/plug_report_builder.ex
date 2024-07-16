@@ -40,7 +40,7 @@ defmodule Defectoscope.PlugReportBuilder do
   defp format_kind(%{reason: {exception, _maybe_stacktrace}} = _params) when is_atom(exception),
     do: exception
 
-  defp format_kind(_params), do: :unknown_error_type
+  defp format_kind(%{reason: reason} = _params), do: inspect(reason)
 
   # Error message
   defp format_message(%{kind: kind, reason: reason, stack: stack} = _params) do
