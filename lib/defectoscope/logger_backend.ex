@@ -14,15 +14,18 @@ defmodule Defectoscope.LoggerBackend do
     module pid time file gl domain mfa crash_reason
   )a
 
+  @impl true
   def init(__MODULE__) do
     {:ok, []}
   end
 
   # Ignore events from other nodes
+  @impl true
   def handle_event({_level, gl, {_, _, _, _}}, state) when node(gl) != node() do
     {:ok, state}
   end
 
+  @impl true
   def handle_event({level, _gl, {_, message, _, meta}}, state) when level in @handle_levels do
     %{
       builder: LoggerBackendReportBuilder,
@@ -37,10 +40,12 @@ defmodule Defectoscope.LoggerBackend do
     {:ok, state}
   end
 
+  @impl true
   def handle_event(_event, state) do
     {:ok, state}
   end
 
+  @impl true
   def handle_call(_messsage, state) do
     {:ok, nil, state}
   end

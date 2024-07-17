@@ -1,7 +1,7 @@
 defmodule Defectoscope.PlugReportTest do
   @moduledoc false
 
-  use Defectoscope.ConnCase
+  use Defectoscope.ConnCase, async: true
 
   alias Defectoscope.{Report, PlugReportBuilder}
 

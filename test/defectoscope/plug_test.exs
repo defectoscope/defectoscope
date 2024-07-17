@@ -1,7 +1,7 @@
 defmodule Defectoscope.PlugTest do
   @moduledoc false
 
-  use Defectoscope.ConnCase
+  use Defectoscope.ConnCase, async: true
 
   test "GET / (success)" do
     %{conn: conn} = get("/")
