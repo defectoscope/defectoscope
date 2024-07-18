@@ -1,7 +1,7 @@
 defmodule Defectoscope.ErrorHandlerTest do
   @moduledoc false
 
-  use Defectoscope.ConnCase
+  use Defectoscope.ConnCase, async: true
 
   alias Defectoscope.ErrorHandler
 

@@ -1,9 +1,14 @@
 defmodule Defectoscope.ForwarderTest do
   @moduledoc false
 
-  use Defectoscope.ConnCase
+  use Defectoscope.ConnCase, async: true
 
-  alias Defectoscope.{Forwarder, PlugReportBuilder, LoggerBackendReportBuilder}
+  alias Defectoscope.{
+    Forwarder,
+    PlugReportBuilder,
+    LoggerBackendReportBuilder,
+    ObanLoggerReportBuilder
+  }
 
   describe "forward/1" do
     setup do
@@ -50,6 +55,18 @@ defmodule Defectoscope.ForwarderTest do
       }
 
       assert {:ok, _} = Forwarder.forward([logger_error])
+    end
+
+    test "(oban)" do
+      oban_error = %{
+        builder: ObanLoggerReportBuilder,
+        kind: :error,
+        reason: "bad argument in arithmetic expression",
+        stacktrace: [{:erlang, :/, [1, 0], [error_info: %{module: :erl_erts_errors}]}],
+        timestamp: ~U[2024-04-23 08:56:19.327874Z]
+      }
+
+      assert {:ok, _} = Forwarder.forward([oban_error])
     end
   end
 end
