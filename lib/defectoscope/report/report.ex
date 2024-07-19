@@ -9,6 +9,7 @@ defmodule Defectoscope.Report do
           message: String.t(),
           stacktrace: list(String.t()),
           timestamp: DateTime.t(),
+          scope: String.t(),
           phoenix_params: map(),
           meta: map()
         }
@@ -22,6 +23,7 @@ defmodule Defectoscope.Report do
     :message,
     :stacktrace,
     :timestamp,
+    scope: "runtime",
     phoenix_params: %{},
     meta: %{}
   ]

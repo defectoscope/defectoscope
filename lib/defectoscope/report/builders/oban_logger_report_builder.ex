@@ -21,7 +21,8 @@ defmodule Defectoscope.ObanLoggerReportBuilder do
       level: :error,
       message: Exception.format_banner(kind, reason, stacktrace),
       stacktrace: format_stacktrace(stacktrace),
-      timestamp: timestamp
+      timestamp: timestamp,
+      scope: "oban"
     }
   end
 
