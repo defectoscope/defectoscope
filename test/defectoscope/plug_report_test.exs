@@ -23,7 +23,8 @@ defmodule Defectoscope.PlugReportTest do
              message: "** (RuntimeError) Exception!",
              stacktrace: [_ | _],
              phoenix_params: phoenix_params,
-             timestamp: _
+             timestamp: _,
+             scope: "web"
            } = report
 
     assert %{

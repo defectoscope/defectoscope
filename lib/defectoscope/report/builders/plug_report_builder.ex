@@ -26,7 +26,8 @@ defmodule Defectoscope.PlugReportBuilder do
       message: format_message(params),
       phoenix_params: format_phoenix_params(params),
       stacktrace: format_stacktrace(params),
-      timestamp: format_timestamp(params)
+      timestamp: format_timestamp(params),
+      scope: "web"
     }
   end
 
