@@ -2,7 +2,7 @@ defmodule Defectoscope.Config do
   @moduledoc false
 
   @doc """
-  Enabled flag to enable or disable the Defectoscope
+  Enable or disable the error handler
   """
   @spec is_enabled?() :: boolean()
   def is_enabled?() do
@@ -44,7 +44,7 @@ defmodule Defectoscope.Config do
   end
 
   @doc """
-  Endpoint to send reports to
+  Backend endpoint
   """
   @spec endpoint() :: String.t()
   def endpoint() do

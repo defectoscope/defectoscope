@@ -16,14 +16,14 @@ defmodule Defectoscope.ObanLogger do
     )
   end
 
+  @doc false
   def handle_event([:oban, :job, :exception], _measure, meta, _) do
-    %{
+    ErrorHandler.push(%{
       builder: ObanLoggerReportBuilder,
       kind: meta.kind,
       reason: meta.reason,
       stacktrace: meta.stacktrace,
       timestamp: DateTime.utc_now()
-    }
-    |> ErrorHandler.push()
+    })
   end
 end
