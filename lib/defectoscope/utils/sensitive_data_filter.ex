@@ -1,66 +1,68 @@
 defmodule Defectoscope.Util.SensitiveDataFilter do
   @moduledoc """
-  A module to filter sensitive data
+  Filter sensitive data from params and headers
   """
 
-  # List of sensitive params
+  # Sensitive parameters that should be kept private
   @sensitive_params ~w(password password_confirmation token api_key secret)
 
-  # List of sensitive headers
+  # Sensitive headers that should be kept private
   @sensitive_headers ~w(authorization)
 
   @doc """
   Filter sensitive data from phoenix params
   """
-  @spec filter_phoenix_params(map) :: map
+  @spec filter_phoenix_params(params :: map()) :: map()
   def filter_phoenix_params(params) do
     Enum.reduce(params, %{}, fn {key, value}, acc ->
-      Map.put(acc, key, do_filter_param(key, value))
+      Map.put(acc, key, filter_param(key, value))
     end)
   end
 
   @doc """
   Filter sensitive data from query string
   """
-  @spec filter_query_string(String.t()) :: String.t()
+  @spec filter_query_string(query_string :: String.t()) :: String.t()
   def filter_query_string(query_string) do
     query_string
     |> Plug.Conn.Query.decode()
-    |> Map.new(fn {key, value} -> {key, do_filter_param(key, value)} end)
+    |> Map.new(fn {key, value} -> {key, filter_param(key, value)} end)
     |> Plug.Conn.Query.encode()
     |> URI.decode()
   end
 
   # Filter sensitive data from a key-value pair
-  defp do_filter_param(key, value) when key in @sensitive_params do
-    hidden_value(value)
+  defp filter_param(key, value) when key in @sensitive_params do
+    hide_value(value)
   end
 
-  defp do_filter_param(_key, value), do: value
+  defp filter_param(_key, value), do: value
 
   @doc """
   Filter sensitive data from headers
   """
-  @spec filter_headers(map) :: map
+  @spec filter_headers(headers :: map()) :: map()
   def filter_headers(headers) do
     Enum.reduce(headers, %{}, fn {key, value}, acc ->
-      Map.put(acc, key, do_filter_header(String.downcase(key), value))
+      Map.put(acc, key, filter_header(String.downcase(key), value))
     end)
   end
 
   # Filter sensitive data from a header
-  defp do_filter_header(key, value) when key in @sensitive_headers do
-    hidden_value(value)
+  defp filter_header(key, value) when key in @sensitive_headers do
+    hide_value(value)
   end
 
-  defp do_filter_header(_key, value), do: value
+  defp filter_header(_key, value), do: value
 
-  # Hide the value of a sensitive parameter
-  defp hidden_value(value) when is_binary(value) do
-    String.replace(value, ~r/./, "*")
+  # Hide sensitive data from a value
+  defp hide_value(value) when is_binary(value) do
+    value
+    |> String.slice(0, 10)
+    |> String.replace(~r/./, "*")
   end
 
-  defp hidden_value(value) when is_list(value) do
-    Enum.map(value, &hidden_value/1)
+  defp hide_value(values) when is_list(values) do
+    Enum.map(values, &hide_value/1)
   end
 end
