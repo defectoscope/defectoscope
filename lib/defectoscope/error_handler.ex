@@ -98,8 +98,8 @@ defmodule Defectoscope.ErrorHandler do
 
   @doc false
   @impl true
-  def handle_call(:forwarder_errors, _from, %State{forwarder_errors: error} = state) do
-    {:reply, error, state}
+  def handle_call(:forwarder_errors, _from, %State{forwarder_errors: errors} = state) do
+    {:reply, errors, state}
   end
 
   @doc false
