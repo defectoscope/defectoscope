@@ -1,6 +1,6 @@
 defmodule Defectoscope.Report do
   @moduledoc """
-  Struct to represent a report
+  Report struct
   """
 
   @type t :: %__MODULE__{
@@ -14,7 +14,8 @@ defmodule Defectoscope.Report do
           meta: map()
         }
 
-  @type params :: %{:builder => atom(), optional(atom()) => any()}
+  @type builder :: atom()
+  @type params :: %{:builder => builder, optional(atom()) => any()}
 
   @derive Jason.Encoder
   defstruct [

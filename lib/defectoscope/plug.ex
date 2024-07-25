@@ -1,6 +1,6 @@
 defmodule Defectoscope.Plug do
   @moduledoc """
-  A plug to catch errors and send them to the error handler
+  Plug for handling errors and pushing them to the error handler
   """
 
   alias Defectoscope.{ErrorHandler, PlugReportBuilder}
@@ -39,14 +39,13 @@ defmodule Defectoscope.Plug do
 
   @doc false
   def handle_error(kind, reason, stack, conn) do
-    %{
+    ErrorHandler.push(%{
       builder: PlugReportBuilder,
       kind: kind,
       reason: reason,
       stack: stack,
       conn: conn,
       timestamp: DateTime.utc_now()
-    }
-    |> ErrorHandler.push()
+    })
   end
 end

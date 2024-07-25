@@ -1,6 +1,6 @@
 defmodule Defectoscope.Forwarder do
   @moduledoc """
-  Module to forward reports to the backend service
+  Forward errors to the backend
   """
 
   alias Defectoscope.{Report, Config}
@@ -10,7 +10,7 @@ defmodule Defectoscope.Forwarder do
   @type response :: Req.Response.t()
 
   @doc """
-  Forward errors to the error forwarder
+  Forward errors to the backend
   """
   @spec forward(errors) :: response
   def forward(errors) do
