@@ -17,14 +17,18 @@ defmodule Defectoscope.ErrorHandler do
     @type t :: %{
             forwarder_ref: reference() | nil,
             errors: list(map()),
-            pending_errors: list(map())
+            pending_errors: list(map()),
+            forwarder_errors: list()
           }
 
-    defstruct forwarder_ref: nil, errors: [], pending_errors: []
+    defstruct forwarder_ref: nil, errors: [], pending_errors: [], forwarder_errors: []
   end
 
   # Period for the scheduler to send the errors
   @scheduler_period :timer.seconds(20)
+
+  # Number of errors to send in one request
+  @errors_chunk_size 100
 
   @doc false
   def start_link(opts) do
@@ -54,6 +58,14 @@ defmodule Defectoscope.ErrorHandler do
   @spec get_state() :: State.t()
   def get_state() do
     GenServer.call(__MODULE__, :get_state)
+  end
+
+  @doc """
+  Get the errors from the forwarder (size limited to 10)
+  """
+  @spec get_forwarder_errors() :: list()
+  def get_forwarder_errors() do
+    GenServer.call(__MODULE__, :forwarder_errors)
   end
 
   @doc false
@@ -86,8 +98,14 @@ defmodule Defectoscope.ErrorHandler do
 
   @doc false
   @impl true
+  def handle_call(:forwarder_errors, _from, %State{forwarder_errors: error} = state) do
+    {:reply, error, state}
+  end
+
+  @doc false
+  @impl true
   def handle_cast({:push, error}, %State{errors: errors} = state) do
-    state = %State{state | errors: [error | errors]}
+    state = %State{state | errors: errors ++ [error]}
     {:noreply, state}
   end
 
@@ -108,10 +126,18 @@ defmodule Defectoscope.ErrorHandler do
   # Start forwarding
   @doc false
   @impl true
-  def handle_info(:start_forwarder, %State{errors: errors} = _state) do
-    task = Task.Supervisor.async_nolink(TaskSupervisor, Forwarder, :forward, [errors])
-    state = %State{forwarder_ref: task.ref, errors: [], pending_errors: errors}
-    {:noreply, state}
+  def handle_info(:start_forwarder, %State{errors: errors} = state) do
+    {errors_to_forward, remaining_errors} = Enum.split(errors, @errors_chunk_size)
+    task = Task.Supervisor.async_nolink(TaskSupervisor, Forwarder, :forward, [errors_to_forward])
+
+    new_state = %State{
+      forwarder_ref: task.ref,
+      errors: remaining_errors,
+      pending_errors: errors_to_forward,
+      forwarder_errors: state.forwarder_errors
+    }
+
+    {:noreply, new_state}
   end
 
   # Forwarder has failed
@@ -120,8 +146,13 @@ defmodule Defectoscope.ErrorHandler do
   def handle_info({ref, {:error, reason}}, %State{forwarder_ref: ref} = state) do
     debug("Forwarder has failed, reason: #{inspect(reason)}")
     Process.demonitor(ref, [:flush])
-    state = %State{errors: state.errors ++ state.pending_errors}
-    {:noreply, state, {:continue, :start_scheduler}}
+
+    new_state = %State{
+      errors: state.errors ++ state.pending_errors,
+      forwarder_errors: push_forwarder_error(state.forwarder_errors, reason)
+    }
+
+    {:noreply, new_state, {:continue, :start_scheduler}}
   end
 
   # Forwarder has completed
@@ -130,8 +161,13 @@ defmodule Defectoscope.ErrorHandler do
   def handle_info({ref, _}, %State{forwarder_ref: ref} = state) do
     debug("Forwarder has been completed (#{length(state.pending_errors)} errors sent)")
     Process.demonitor(ref, [:flush])
-    state = %State{errors: state.errors}
-    {:noreply, state, {:continue, :start_scheduler}}
+
+    new_state = %State{
+      errors: state.errors,
+      forwarder_errors: state.forwarder_errors
+    }
+
+    {:noreply, new_state, {:continue, :start_scheduler}}
   end
 
   # Forwarder has failed
@@ -139,7 +175,17 @@ defmodule Defectoscope.ErrorHandler do
   @impl true
   def handle_info({:DOWN, ref, :process, _pid, reason}, %State{forwarder_ref: ref} = state) do
     debug("Forwarder has failed, reason: #{inspect(reason)}")
-    state = %State{errors: state.errors ++ state.pending_errors}
-    {:noreply, state, {:continue, :start_scheduler}}
+
+    new_state = %State{
+      errors: state.errors ++ state.pending_errors,
+      forwarder_errors: push_forwarder_error(state.forwarder_errors, reason)
+    }
+
+    {:noreply, new_state, {:continue, :start_scheduler}}
+  end
+
+  # Push error to forwarder errors list and keep only the last 10 errors
+  defp push_forwarder_error(forwarder_errors, error) do
+    [error | forwarder_errors] |> Enum.take(10)
   end
 end
