@@ -11,7 +11,7 @@ defmodule Defectoscope.ConnCase do
       defp get(path, params \\ nil) do
         conn =
           conn(:get, path, params)
-          |> put_req_header("authorization", "secret")
+          |> put_req_header("authorization", "Bearer secret-token-key")
           |> put_req_header("referer", "http://example.com")
 
         try do

@@ -9,7 +9,7 @@ defmodule Defectoscope.PlugReportTest do
     payload = %{
       password: "password",
       password_confirmation: "password",
-      token: "token",
+      token: "secret-token-key",
       api_key: "api_key",
       secret: ["secret1", "secret2"],
       some: "value"
@@ -44,7 +44,7 @@ defmodule Defectoscope.PlugReportTest do
              "password_confirmation" => "********",
              "secret" => ["*******", "*******"],
              "some" => "value",
-             "token" => "*****"
+             "token" => "**********"
            } = params
 
     assert query_string ==
@@ -55,12 +55,12 @@ defmodule Defectoscope.PlugReportTest do
              &secret[]=*******
              &secret[]=*******
              &some=value
-             &token=*****
+             &token=**********
              """
              |> String.replace(~r/\s+/, "")
 
     assert %{
-             "authorization" => "******",
+             "authorization" => "**********",
              "referer" => "http://example.com"
            } = req_headers
   end
