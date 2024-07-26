@@ -20,7 +20,7 @@ defmodule Defectoscope.ForwarderTest do
     end
 
     test "(plug: success)" do
-      errors =
+      incidents =
         [
           get("/exception"),
           get("/badarith"),
@@ -30,7 +30,7 @@ defmodule Defectoscope.ForwarderTest do
         ]
         |> Enum.map(&Map.put(&1, :builder, PlugReportBuilder))
 
-      assert {:ok, _} = Forwarder.forward(errors)
+      assert {:ok, _} = Forwarder.forward(incidents)
     end
 
     test "(plug: raise exception)" do
@@ -39,7 +39,7 @@ defmodule Defectoscope.ForwarderTest do
     end
 
     test "(logger backend)" do
-      logger_error = %{
+      incident = %{
         builder: LoggerBackendReportBuilder,
         level: :error,
         message: ["** (ArithmeticError) bad argument in arithmetic expression"],
@@ -54,11 +54,11 @@ defmodule Defectoscope.ForwarderTest do
         timestamp: ~U[2024-04-23 08:56:19.327874Z]
       }
 
-      assert {:ok, _} = Forwarder.forward([logger_error])
+      assert {:ok, _} = Forwarder.forward([incident])
     end
 
     test "(oban)" do
-      oban_error = %{
+      incident = %{
         builder: ObanLoggerReportBuilder,
         kind: :error,
         reason: "bad argument in arithmetic expression",
@@ -66,7 +66,7 @@ defmodule Defectoscope.ForwarderTest do
         timestamp: ~U[2024-04-23 08:56:19.327874Z]
       }
 
-      assert {:ok, _} = Forwarder.forward([oban_error])
+      assert {:ok, _} = Forwarder.forward([incident])
     end
   end
 end

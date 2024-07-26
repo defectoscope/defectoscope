@@ -15,7 +15,8 @@ defmodule Defectoscope.PlugReportTest do
       some: "value"
     }
 
-    report = get("/exception", payload) |> PlugReportBuilder.new()
+    incident = get("/exception", payload)
+    report = PlugReportBuilder.new(incident)
 
     assert %Report{
              kind: RuntimeError,

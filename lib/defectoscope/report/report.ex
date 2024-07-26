@@ -1,7 +1,5 @@
 defmodule Defectoscope.Report do
-  @moduledoc """
-  Report struct
-  """
+  @moduledoc false
 
   @type t :: %__MODULE__{
           kind: atom(),
@@ -30,7 +28,7 @@ defmodule Defectoscope.Report do
   ]
 
   @doc """
-  Create a new report
+  Create a new report using a builder
   """
   @spec new(params) :: t()
   def new(%{builder: builder} = params) do

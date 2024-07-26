@@ -1,6 +1,6 @@
-defmodule Defectoscope.ErrorHandler do
+defmodule Defectoscope.IncidentsHandler do
   @moduledoc """
-  GenServer that keeps track of errors and sends them to the forwarder
+  GenServer that handles incidents and sends them to the forwarder
   """
 
   use GenServer
@@ -11,24 +11,24 @@ defmodule Defectoscope.ErrorHandler do
 
   defmodule State do
     @moduledoc """
-    State of the error handler
+    State of the incidents handler
     """
 
     @type t :: %{
             forwarder_ref: reference() | nil,
-            errors: list(map()),
-            pending_errors: list(map()),
+            incidents: list(map()),
+            pending_incidents: list(map()),
             forwarder_errors: list()
           }
 
-    defstruct forwarder_ref: nil, errors: [], pending_errors: [], forwarder_errors: []
+    defstruct forwarder_ref: nil, incidents: [], pending_incidents: [], forwarder_errors: []
   end
 
   # Period for the scheduler to send the errors
   @scheduler_period :timer.seconds(20)
 
-  # Number of errors to send in one request
-  @errors_chunk_size 100
+  # Number of incidents to send in one request
+  @incidents_chunk_size 100
 
   @doc false
   def start_link(opts) do
@@ -36,16 +36,16 @@ defmodule Defectoscope.ErrorHandler do
   end
 
   @doc """
-  Push an error params to the error handler
+  Push an incident to the incidents handler
   """
-  @spec push(error :: map()) :: :ok
-  def push(error) do
-    if Config.is_enabled?(), do: GenServer.cast(__MODULE__, {:push, error})
+  @spec push(incident :: map()) :: :ok
+  def push(incident) do
+    if Config.is_enabled?(), do: GenServer.cast(__MODULE__, {:push, incident})
     :ok
   end
 
   @doc """
-  Reset the state of the error handler
+  Reset the state of the incidents handler
   """
   @spec reset() :: :ok
   def reset() do
@@ -53,7 +53,7 @@ defmodule Defectoscope.ErrorHandler do
   end
 
   @doc """
-  Get the state of the error handler
+  Get the state of the incidents handler
   """
   @spec get_state() :: State.t()
   def get_state() do
@@ -61,7 +61,7 @@ defmodule Defectoscope.ErrorHandler do
   end
 
   @doc """
-  Get the errors from the forwarder (size limited to 10)
+  Get the last errors from the forwarder (size limited to 10)
   """
   @spec get_forwarder_errors() :: list()
   def get_forwarder_errors() do
@@ -86,7 +86,7 @@ defmodule Defectoscope.ErrorHandler do
   @doc false
   @impl true
   def handle_call(:reset, _from, %State{} = state) do
-    state = %{state | errors: []}
+    state = %State{state | incidents: []}
     {:reply, :ok, state}
   end
 
@@ -104,12 +104,12 @@ defmodule Defectoscope.ErrorHandler do
 
   @doc false
   @impl true
-  def handle_cast({:push, error}, %State{errors: errors} = state) do
-    state = %State{state | errors: errors ++ [error]}
+  def handle_cast({:push, incident}, %State{incidents: incidents} = state) do
+    state = %State{state | incidents: incidents ++ [incident]}
     {:noreply, state}
   end
 
-  # Forwarder is already running
+  # Already forwarding
   @doc false
   @impl true
   def handle_info(:start_forwarder, %State{forwarder_ref: ref} = state) when not is_nil(ref) do
@@ -119,21 +119,23 @@ defmodule Defectoscope.ErrorHandler do
   # Nothing to forward yet
   @doc false
   @impl true
-  def handle_info(:start_forwarder, %State{errors: []} = state) do
+  def handle_info(:start_forwarder, %State{incidents: []} = state) do
     {:noreply, state, {:continue, :start_scheduler}}
   end
 
-  # Start forwarding
+  # Start the forwarder task
   @doc false
   @impl true
-  def handle_info(:start_forwarder, %State{errors: errors} = state) do
-    {errors_to_forward, remaining_errors} = Enum.split(errors, @errors_chunk_size)
-    task = Task.Supervisor.async_nolink(TaskSupervisor, Forwarder, :forward, [errors_to_forward])
+  def handle_info(:start_forwarder, %State{incidents: incidents} = state) do
+    {incidents_to_forward, remaining_incidents} = Enum.split(incidents, @incidents_chunk_size)
+
+    task =
+      Task.Supervisor.async_nolink(TaskSupervisor, Forwarder, :forward, [incidents_to_forward])
 
     new_state = %State{
       forwarder_ref: task.ref,
-      errors: remaining_errors,
-      pending_errors: errors_to_forward,
+      incidents: remaining_incidents,
+      pending_incidents: incidents_to_forward,
       forwarder_errors: state.forwarder_errors
     }
 
@@ -148,22 +150,22 @@ defmodule Defectoscope.ErrorHandler do
     Process.demonitor(ref, [:flush])
 
     new_state = %State{
-      errors: state.errors ++ state.pending_errors,
+      incidents: state.incidents ++ state.pending_incidents,
       forwarder_errors: push_forwarder_error(state.forwarder_errors, reason)
     }
 
     {:noreply, new_state, {:continue, :start_scheduler}}
   end
 
-  # Forwarder has completed
+  # Forwarder has been completed
   @doc false
   @impl true
   def handle_info({ref, _}, %State{forwarder_ref: ref} = state) do
-    debug("Forwarder has been completed (#{length(state.pending_errors)} errors sent)")
+    debug("Forwarder has been completed (#{length(state.pending_incidents)} incidents sent)")
     Process.demonitor(ref, [:flush])
 
     new_state = %State{
-      errors: state.errors,
+      incidents: state.incidents,
       forwarder_errors: state.forwarder_errors
     }
 
@@ -177,7 +179,7 @@ defmodule Defectoscope.ErrorHandler do
     debug("Forwarder has failed, reason: #{inspect(reason)}")
 
     new_state = %State{
-      errors: state.errors ++ state.pending_errors,
+      incidents: state.incidents ++ state.pending_incidents,
       forwarder_errors: push_forwarder_error(state.forwarder_errors, reason)
     }
 

@@ -2,7 +2,7 @@ defmodule Defectoscope.Config do
   @moduledoc false
 
   @doc """
-  Enable or disable the error handler
+  Enable or disable the incidents handler
   """
   @spec is_enabled?() :: boolean()
   def is_enabled?() do

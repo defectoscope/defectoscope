@@ -1,7 +1,7 @@
 defmodule Defectoscope.ObanLogger do
   @moduledoc false
 
-  alias Defectoscope.{ErrorHandler, ObanLoggerReportBuilder}
+  alias Defectoscope.{IncidentsHandler, ObanLoggerReportBuilder}
 
   @doc """
   Attach the Oban logger to handle Oban errors
@@ -18,7 +18,7 @@ defmodule Defectoscope.ObanLogger do
 
   @doc false
   def handle_event([:oban, :job, :exception], _measure, meta, _) do
-    ErrorHandler.push(%{
+    IncidentsHandler.push(%{
       builder: ObanLoggerReportBuilder,
       kind: meta.kind,
       reason: meta.reason,
