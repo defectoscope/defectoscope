@@ -1,9 +1,9 @@
 defmodule Defectoscope.Plug do
   @moduledoc """
-  Plug for handling errors and pushing them to the error handler
+  Plug to handle exceptions and push them to the IncidentsHandler
   """
 
-  alias Defectoscope.{ErrorHandler, PlugReportBuilder}
+  alias Defectoscope.{IncidentsHandler, PlugReportBuilder}
   alias Plug.Conn.WrapperError
 
   @doc false
@@ -39,7 +39,7 @@ defmodule Defectoscope.Plug do
 
   @doc false
   def handle_error(kind, reason, stack, conn) do
-    ErrorHandler.push(%{
+    IncidentsHandler.push(%{
       builder: PlugReportBuilder,
       kind: kind,
       reason: reason,

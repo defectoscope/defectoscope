@@ -14,7 +14,7 @@ defmodule Defectoscope.Application do
 
     children = [
       {Task.Supervisor, name: Defectoscope.TaskSupervisor},
-      Defectoscope.ErrorHandler
+      Defectoscope.IncidentsHandler
     ]
 
     # Add the logger backend to handle errors

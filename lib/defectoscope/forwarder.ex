@@ -1,20 +1,16 @@
 defmodule Defectoscope.Forwarder do
   @moduledoc """
-  Forward errors to the backend
+  Forward incidents to the backend server
   """
 
   alias Defectoscope.{Report, Config}
 
-  @type error :: map()
-  @type errors :: list(error)
-  @type response :: Req.Response.t()
-
   @doc """
-  Forward errors to the backend
+  Forward incidents to the backend server
   """
-  @spec forward(errors) :: response
-  def forward(errors) do
-    errors
+  @spec forward(incidents :: list(map())) :: Req.Response.t()
+  def forward(incidents) do
+    incidents
     |> Enum.map(&Report.new/1)
     |> request()
   end
