@@ -20,22 +20,22 @@ defmodule Defectoscope.ConnCase do
           kind, reason ->
             case reason do
               %Plug.Conn.WrapperError{conn: conn, reason: reason} ->
-                %{
-                  conn: conn,
-                  kind: kind,
-                  reason: reason,
-                  stack: __STACKTRACE__
-                }
+                build_error(kind, reason, __STACKTRACE__, conn)
 
-              _ ->
-                %{
-                  conn: conn,
-                  kind: kind,
-                  reason: reason,
-                  stack: __STACKTRACE__
-                }
+              _reason ->
+                build_error(kind, reason, __STACKTRACE__, conn)
             end
         end
+      end
+
+      defp build_error(kind, reason, stacktrace, conn) do
+        %{
+          conn: conn,
+          kind: kind,
+          reason: reason,
+          stacktrace: stacktrace,
+          timestamp: DateTime.utc_now()
+        }
       end
     end
   end

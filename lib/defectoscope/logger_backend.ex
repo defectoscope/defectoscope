@@ -1,13 +1,15 @@
 defmodule Defectoscope.LoggerBackend do
-  @moduledoc false
+  @moduledoc """
+  Handles Logger error messages and pushes them to the `IncidentsHandler`
+  """
 
   @behaviour :gen_event
 
-  alias Defectoscope.{IncidentsHandler, LoggerBackendReportBuilder}
+  alias Defectoscope.IncidentsHandler
 
   require Logger
 
-  @handle_levels ~w(error critical emergency alert)a
+  @log_levels ~w(error critical emergency alert)a
 
   @meta_keys ~w(
     application erl_level initial_call registered_name function line
@@ -17,27 +19,28 @@ defmodule Defectoscope.LoggerBackend do
   @doc false
   @impl true
   def init(__MODULE__) do
-    {:ok, []}
+    {:ok, nil}
   end
 
   # Ignore events from other nodes
   @doc false
   @impl true
-  def handle_event({_level, gl, {_, _, _, _}}, state) when node(gl) != node() do
+  def handle_event({_, gl, {_, _, _, _}}, state) when node(gl) != node() do
     {:ok, state}
   end
 
   @doc false
   @impl true
-  def handle_event({level, _gl, {_, message, _, meta}}, state) when level in @handle_levels do
-    IncidentsHandler.push(%{
-      builder: LoggerBackendReportBuilder,
+  def handle_event({level, _, {_, message, _, meta}}, state) when level in @log_levels do
+    params = %{
       level: level,
       message: message,
       meta: Map.new(meta),
       metadata: Keyword.drop(meta, @meta_keys),
       timestamp: DateTime.utc_now()
-    })
+    }
+
+    IncidentsHandler.push(%{source: :logger, params: params})
 
     {:ok, state}
   end
@@ -50,7 +53,7 @@ defmodule Defectoscope.LoggerBackend do
 
   @doc false
   @impl true
-  def handle_call(_messsage, state) do
-    {:ok, nil, state}
+  def handle_call(_message, state) do
+    {:reply, :ok, state}
   end
 end
