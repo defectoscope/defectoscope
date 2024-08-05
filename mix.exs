@@ -64,7 +64,6 @@ defmodule Defectoscope.MixProject do
   defp package do
     [
       name: "defectoscope",
-      organization: "defectoscope",
       files: ["lib", "mix.exs", "README*", "LICENSE*"],
       licenses: ["AGPL-3.0"],
       links: %{"GitHub" => @source_url}
