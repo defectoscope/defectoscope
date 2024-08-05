@@ -9,7 +9,7 @@ The package can be installed by adding defectoscope to your list of dependencies
 ```elixir
 def deps do
   [
-    {:defectoscope, git: "https://github.com/shuma-id/defectoscope.git"}
+    {:defectoscope, "~> 0.1.0"}
   ]
 end
 ```
