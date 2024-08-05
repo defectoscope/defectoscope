@@ -1,4 +1,4 @@
-defmodule Defectoscope.Util.SensitiveDataFilter do
+defmodule Defectoscope.Utils.SensitiveDataFilter do
   @moduledoc """
   Filter sensitive data from params and headers
   """

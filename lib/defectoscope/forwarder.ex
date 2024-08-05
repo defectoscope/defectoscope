@@ -1,35 +1,39 @@
 defmodule Defectoscope.Forwarder do
   @moduledoc """
-  Forward incidents to the backend server
+  Forwards incidents to the backend server
   """
 
   alias Defectoscope.{Report, Config}
 
   @doc """
-  Forward incidents to the backend server
+  Forwards a list of incidents to the backend server
   """
-  @spec forward(incidents :: list(map())) :: Req.Response.t()
+  @spec forward(incidents :: list(map())) :: {:ok, Req.Response.t()} | {:error, Exception.t()}
   def forward(incidents) do
-    incidents
-    |> Enum.map(&Report.new/1)
-    |> request()
+    reports = Enum.map(incidents, &Report.new/1)
+    make_request(reports)
   end
 
-  defp request(reports) do
-    [
+  defp make_request(reports) do
+    req_options = [
       method: :post,
       retry: :transient,
-      base_url: Config.endpoint(),
-      retry_log_level: if(Config.is_debug?(), do: :error, else: false),
+      base_url: Config.endpoint_url(),
+      retry_log_level: retry_log_level(),
       max_retries: 60,
-      json: %{app_key: Config.app_key(), env: Mix.env(), reports: reports}
+      json: json_body(reports)
     ]
-    |> Keyword.merge(req_options())
+
+    req_options
+    |> Keyword.merge(Config.req_options())
     |> Req.request()
   end
 
-  # Req request options from the configuration
-  defp req_options() do
-    Application.get_env(:defectoscope, :req_options, [])
+  defp json_body(reports) do
+    %{app_key: Config.app_key(), env: Mix.env(), reports: reports}
+  end
+
+  defp retry_log_level do
+    if Config.debug_mode_enabled?(), do: :error, else: false
   end
 end

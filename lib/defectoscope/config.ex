@@ -1,57 +1,59 @@
 defmodule Defectoscope.Config do
-  @moduledoc false
+  @moduledoc """
+  Provides configuration for Defectoscope
+  """
 
   @doc """
-  Enable or disable the incidents handler
+  Returns whether Defectoscope is enabled or disabled
   """
-  @spec is_enabled?() :: boolean()
-  def is_enabled?() do
+  @spec enabled?() :: boolean()
+  def enabled? do
     Application.get_env(:defectoscope, :enabled, true)
   end
 
   @doc """
-  Debug mode
+  Returns the application key
   """
-  @spec is_debug?() :: boolean()
-  def is_debug?() do
-    Application.get_env(:defectoscope, :debug, false)
-  end
-
-  @doc """
-  Validate the configuration
-  """
-  @spec validate_config!() :: :ok
-  def validate_config!() do
-    is_enabled?() |> do_validate_config!()
-  end
-
-  defp do_validate_config!(true = _is_enabled) do
-    with :error <- Application.fetch_env(:defectoscope, :app_key) do
-      raise """
-      Missing :app_key in the :defectoscope configuration. Please add it to your config.exs
-      """
-    end
-  end
-
-  defp do_validate_config!(false = _is_enabled), do: :ok
-
-  @doc """
-  Application key
-  """
-  @spec app_key() :: String.t()
-  def app_key() do
+  @spec app_key() :: String.t() | nil
+  def app_key do
     Application.get_env(:defectoscope, :app_key)
   end
 
   @doc """
-  Backend endpoint
+  Returns the backend endpoint url
   """
-  @spec endpoint() :: String.t()
-  def endpoint() do
-    Application.get_env(
-      :defectoscope,
-      :endpoint,
-      "https://api.defectoscope.dev/dev/track"
-    )
+  @spec endpoint_url() :: String.t()
+  def endpoint_url do
+    default_url = "https://api.defectoscope.dev/dev/track"
+    Application.get_env(:defectoscope, :endpoint, default_url)
+  end
+
+  @doc """
+  Returns whether debug mode is enabled
+  """
+  @spec debug_mode_enabled?() :: boolean()
+  def debug_mode_enabled? do
+    Application.get_env(:defectoscope, :debug, false)
+  end
+
+  @doc """
+  Returns Req request options
+  """
+  @spec req_options() :: keyword()
+  def req_options do
+    Application.get_env(:defectoscope, :req_options, [])
+  end
+
+  @doc """
+  Validates Defectoscope configuration
+  """
+  @spec validate_config!() :: term()
+  def validate_config! do
+    if enabled?(), do: validate_enabled_config!()
+  end
+
+  # Raises an exception if the :app_key configuration is missing when defectoscope is enabled
+  defp validate_enabled_config! do
+    unless app_key(), do: raise("Missing :app_key configuration for :defectoscope")
   end
 end

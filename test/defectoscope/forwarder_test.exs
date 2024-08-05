@@ -3,12 +3,7 @@ defmodule Defectoscope.ForwarderTest do
 
   use Defectoscope.ConnCase, async: true
 
-  alias Defectoscope.{
-    Forwarder,
-    PlugReportBuilder,
-    LoggerBackendReportBuilder,
-    ObanLoggerReportBuilder
-  }
+  alias Defectoscope.Forwarder
 
   describe "forward/1" do
     setup do
@@ -28,9 +23,9 @@ defmodule Defectoscope.ForwarderTest do
           get("/exit"),
           get("/throw")
         ]
-        |> Enum.map(&Map.put(&1, :builder, PlugReportBuilder))
+        |> Enum.map(&%{source: :plug, params: &1})
 
-      assert {:ok, _} = Forwarder.forward(incidents)
+      assert {:ok, _response} = Forwarder.forward(incidents)
     end
 
     test "(plug: raise exception)" do
@@ -38,35 +33,39 @@ defmodule Defectoscope.ForwarderTest do
       assert catch_error(Forwarder.forward([ok]))
     end
 
-    test "(logger backend)" do
+    test "(logger backend: success)" do
       incident = %{
-        builder: LoggerBackendReportBuilder,
-        level: :error,
-        message: ["** (ArithmeticError) bad argument in arithmetic expression"],
-        meta: %{
-          crash_reason:
-            {%ArithmeticError{
-               message: "bad argument in arithmetic expression"
-             }, [{:erlang, :/, [1, 0], [error_info: %{module: :erl_erts_errors}]}]},
-          erl_level: :error
-        },
-        metadata: [user_params: [1, 0]],
-        timestamp: ~U[2024-04-23 08:56:19.327874Z]
+        source: :logger,
+        params: %{
+          level: :error,
+          message: ["** (ArithmeticError) bad argument in arithmetic expression"],
+          meta: %{
+            crash_reason:
+              {%ArithmeticError{
+                 message: "bad argument in arithmetic expression"
+               }, [{:erlang, :/, [1, 0], [error_info: %{module: :erl_erts_errors}]}]},
+            erl_level: :error
+          },
+          metadata: [user_params: [1, 0]],
+          timestamp: ~U[2024-04-23 08:56:19.327874Z]
+        }
       }
 
-      assert {:ok, _} = Forwarder.forward([incident])
+      assert {:ok, _response} = Forwarder.forward([incident])
     end
 
-    test "(oban)" do
+    test "(oban: success)" do
       incident = %{
-        builder: ObanLoggerReportBuilder,
-        kind: :error,
-        reason: "bad argument in arithmetic expression",
-        stacktrace: [{:erlang, :/, [1, 0], [error_info: %{module: :erl_erts_errors}]}],
-        timestamp: ~U[2024-04-23 08:56:19.327874Z]
+        source: :oban,
+        params: %{
+          kind: :error,
+          reason: "bad argument in arithmetic expression",
+          stacktrace: [{:erlang, :/, [1, 0], [error_info: %{module: :erl_erts_errors}]}],
+          timestamp: ~U[2024-04-23 08:56:19.327874Z]
+        }
       }
 
-      assert {:ok, _} = Forwarder.forward([incident])
+      assert {:ok, _response} = Forwarder.forward([incident])
     end
   end
 end

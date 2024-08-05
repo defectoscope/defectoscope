@@ -3,7 +3,8 @@ defmodule Defectoscope.PlugReportTest do
 
   use Defectoscope.ConnCase, async: true
 
-  alias Defectoscope.{Report, PlugReportBuilder}
+  alias Defectoscope.Report
+  alias Defectoscope.Builders.ReportBuilder
 
   test "new/1" do
     payload = %{
@@ -16,7 +17,8 @@ defmodule Defectoscope.PlugReportTest do
     }
 
     incident = get("/exception", payload)
-    report = PlugReportBuilder.new(incident)
+
+    report = ReportBuilder.build!(:plug, incident)
 
     assert %Report{
              kind: RuntimeError,

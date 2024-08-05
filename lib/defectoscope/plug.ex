@@ -1,9 +1,9 @@
 defmodule Defectoscope.Plug do
   @moduledoc """
-  Plug to handle exceptions and push them to the IncidentsHandler
+  Plug to handle exceptions and push them to the `IncidentsHandler`
   """
 
-  alias Defectoscope.{IncidentsHandler, PlugReportBuilder}
+  alias Defectoscope.IncidentsHandler
   alias Plug.Conn.WrapperError
 
   @doc false
@@ -33,19 +33,20 @@ defmodule Defectoscope.Plug do
 
   @doc false
   def handle_error(:error, %WrapperError{} = wrapped_error, _stack, _conn) do
-    %{conn: conn, reason: wrapped_reason, stack: stack} = wrapped_error
-    handle_error(:error, wrapped_reason, stack, conn)
+    %{conn: conn, reason: wrapped_reason, stack: stacktrace} = wrapped_error
+    handle_error(:error, wrapped_reason, stacktrace, conn)
   end
 
   @doc false
-  def handle_error(kind, reason, stack, conn) do
-    IncidentsHandler.push(%{
-      builder: PlugReportBuilder,
+  def handle_error(kind, reason, stacktrace, conn) do
+    params = %{
       kind: kind,
       reason: reason,
-      stack: stack,
+      stacktrace: stacktrace,
       conn: conn,
       timestamp: DateTime.utc_now()
-    })
+    }
+
+    IncidentsHandler.push(%{source: :plug, params: params})
   end
 end
