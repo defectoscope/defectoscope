@@ -74,7 +74,7 @@ defmodule Defectoscope.MixProject do
   defp versioning, do: [commit_msg: "Version %s"]
 
   defp description,
-    do: "A tool for monitoring, capturing, and reporting errors in Elixir applications"
+    do: "Simple error tracking and app monitoring for Elixir developers"
 
   defp docs do
     [
