@@ -49,10 +49,11 @@ defmodule Defectoscope.Builders.LoggerReport do
   defp extract_stacktrace(_meta), do: []
 
   # Formats the error message based on the reason and stacktrace or returns the logger message
-  defp format_message(nil = _reason, _stacktrace, logger_message),
-    do: logger_message
+  defp format_message(nil = _reason, _stacktrace, message) do
+    IO.chardata_to_string(message)
+  end
 
-  defp format_message(reason, stacktrace, _logger_message) do
+  defp format_message(reason, stacktrace, _message) do
     Exception.format_banner(:error, reason, stacktrace)
   end
 
