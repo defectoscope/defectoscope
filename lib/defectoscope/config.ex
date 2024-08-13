@@ -45,6 +45,14 @@ defmodule Defectoscope.Config do
   end
 
   @doc """
+  Returns the current environment
+  """
+  @spec current_env() :: atom()
+  def current_env do
+    Application.get_env(:defectoscope, :current_env)
+  end
+
+  @doc """
   Validates Defectoscope configuration
   """
   @spec validate_config!() :: term()
