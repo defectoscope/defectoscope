@@ -30,7 +30,7 @@ defmodule Defectoscope.Forwarder do
   end
 
   defp json_body(reports) do
-    %{app_key: Config.app_key(), env: Config.current_env(), reports: reports}
+    %{app_key: Config.app_key(), env: Config.env(), reports: reports}
   end
 
   defp retry_log_level do
