@@ -44,12 +44,15 @@ defmodule Defectoscope.Config do
     Application.get_env(:defectoscope, :req_options, [])
   end
 
+  @current_env Mix.env()
+
   @doc """
   Returns the current environment
   """
   @spec current_env() :: atom()
   def current_env do
-    Application.get_env(:defectoscope, :current_env)
+    # Application.get_env(:defectoscope, :current_env, @current_env)
+    @current_env
   end
 
   @doc """
