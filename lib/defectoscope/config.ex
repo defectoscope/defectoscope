@@ -51,8 +51,7 @@ defmodule Defectoscope.Config do
   """
   @spec current_env() :: atom()
   def current_env do
-    # Application.get_env(:defectoscope, :current_env, @current_env)
-    @current_env
+    Application.get_env(:defectoscope, :current_env, @current_env)
   end
 
   @doc """

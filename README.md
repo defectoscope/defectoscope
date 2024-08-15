@@ -24,11 +24,14 @@ To start using Defectoscope, you need to set up the configuration with your appl
 config :defectoscope,
   app_key: "your_app_key",
   endpoint: "https://your_app_endpoint",
+  current_env: Mix.env(),
   debug: true,
   enabled: true
 ```
 
-Replace "your_app_key" with the actual app key provided to you and "https://your_app_endpoint" with the URL of the error reporting endpoint.
+Replace `"your_app_key"` with your actual API key and `endpoint` with the URL of the error reporting endpoint.
+
+The `current_env` option is used to specify the environment in which the application is running.
 
 The `debug` option is used to enable or disable debug logging.
 
